@@ -1,1 +1,1 @@
-Rust implementation of https://github.com/skx/foth
+OCaml implementation of https://github.com/skx/foth
