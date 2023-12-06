@@ -70,6 +70,21 @@ let pop_and_print (stack : Stack.stack) : Stack.stack =
 ;;
 
 let print_stack (stack : Stack.stack) : Stack.stack =
-  Util.join (List.map (fun el -> Printf.sprintf "%F" el) stack) "; " |> print_endline;
+  print_string "[";
+  List.rev stack
+  |> List.map (fun el -> Printf.sprintf "%F" el)
+  |> Util.join_string_list "; "
+  |> print_string;
+  print_string "]";
+  print_endline "";
   stack
+;;
+
+let dup (stack : Stack.stack) : Stack.stack =
+  let a, stack = Stack.pop stack in
+  match a with
+  | None ->
+    Printf.eprintf "Error: stack underflow";
+    stack
+  | Some a -> Stack.push a (Stack.push a stack)
 ;;
