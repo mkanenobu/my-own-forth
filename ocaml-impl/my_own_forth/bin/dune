@@ -1,0 +1,4 @@
+(executable
+ (public_name my_own_forth)
+ (name main)
+ (libraries lib))
