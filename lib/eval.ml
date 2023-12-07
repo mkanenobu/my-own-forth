@@ -14,7 +14,7 @@ let find_word_index (dict : dictionaly) (name : string) : int option =
   List.find_index (fun w -> w.name = name) dict
 ;;
 
-let load_word_flag = -1.0
+let load_word_opcode = -1.0
 
 let add_word_to_word (word : word) (word' : float) : word =
   { word with words = Some (Option.value word.words ~default:[] @ [ word' ]) }
@@ -37,6 +37,9 @@ class evaluator =
       ; { name = "."; func = Some Builtin.pop_and_print; words = None }
       ; { name = ".s"; func = Some Builtin.print_stack; words = None }
       ; { name = "dup"; func = Some Builtin.dup; words = None }
+      ; { name = "emit"; func = Some Builtin.emit; words = None }
+      ; { name = "do"; func = Some Builtin.do'; words = None }
+      ; { name = "loop"; func = Some Builtin.loop; words = None }
       ; { name = ":"
         ; func =
             Some
@@ -62,7 +65,7 @@ class evaluator =
                  then (
                    add_num := false;
                    stack <- Stack.push w stack)
-                 else if w = load_word_flag
+                 else if w = load_word_opcode
                  then add_num := true
                  else stack <- self#eval_word @@ int_of_float w)
                words;
@@ -108,8 +111,7 @@ class evaluator =
                        words = Some (tmp_word_words @ [ float_of_int idx' ])
                      }
               | None ->
-                tmp_word
-                <- Some (add_word_to_word (Option.get tmp_word) load_word_flag);
+                tmp_word <- Some (add_word_to_word (Option.get tmp_word) load_word_opcode);
                 let f = float_of_string_opt token in
                 (match f with
                  | Some f' -> tmp_word <- Some (add_word_to_word (Option.get tmp_word) f')
