@@ -1,7 +1,7 @@
 type word =
   { name : string
   ; func : (Stack.stack -> Stack.stack) option
-  ; words : int list option
+  ; words : float list option
   }
 
 type dictionaly = word list
@@ -12,6 +12,12 @@ let find_word (dict : dictionaly) (name : string) : word option =
 
 let find_word_index (dict : dictionaly) (name : string) : int option =
   List.find_index (fun w -> w.name = name) dict
+;;
+
+let load_word_flag = -1.0
+
+let add_word_to_word (word : word) (word' : float) : word =
+  { word with words = Some (Option.value word.words ~default:[] @ [ word' ]) }
 ;;
 
 class evaluator =
@@ -47,9 +53,19 @@ class evaluator =
         match word.func with
         | Some func -> func stack
         | None ->
+          let add_num = ref false in
           (match word.words with
            | Some words ->
-             List.iter (fun i -> stack <- self#eval_word i) words;
+             List.iter
+               (fun w ->
+                 if !add_num
+                 then (
+                   add_num := false;
+                   stack <- Stack.push w stack)
+                 else if w = load_word_flag
+                 then add_num := true
+                 else stack <- self#eval_word @@ int_of_float w)
+               words;
              stack
            | None -> stack)
       in
@@ -73,7 +89,9 @@ class evaluator =
             if token = ";" (* end of word definition *)
             then (
               (match tmp_word with
-               | Some tmp_word' -> dict <- dict @ [ tmp_word' ]
+               | Some tmp_word' ->
+                 Printf.printf "word defined: %s\n" tmp_word'.name;
+                 dict <- dict @ [ tmp_word' ]
                | None -> ());
               tmp_word <- None;
               compiling <- false)
@@ -85,8 +103,17 @@ class evaluator =
                 let tmp_word' = Option.get tmp_word in
                 let tmp_word_words = Option.value tmp_word'.words ~default:[] in
                 tmp_word
-                <- Some { tmp_word' with words = Some (tmp_word_words @ [ idx' ]) }
-              | None -> ()))
+                <- Some
+                     { tmp_word' with
+                       words = Some (tmp_word_words @ [ float_of_int idx' ])
+                     }
+              | None ->
+                tmp_word
+                <- Some (add_word_to_word (Option.get tmp_word) load_word_flag);
+                let f = float_of_string_opt token in
+                (match f with
+                 | Some f' -> tmp_word <- Some (add_word_to_word (Option.get tmp_word) f')
+                 | None -> ())))
         else (
           let handled = ref false in
           List.iteri
