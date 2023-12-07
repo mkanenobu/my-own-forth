@@ -1,6 +1,6 @@
 type stack = float list
 
-let empty () : stack = []
+let empty : stack = []
 let is_empty (s : stack) : bool = s = []
 let push (x : float) (s : stack) : stack = x :: s
 
